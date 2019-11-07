@@ -10,11 +10,10 @@ func main() {
 		panic("Required output file")
 	}
 
-	f, err := os.OpenFile(os.Args[1], os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	f, err := os.OpenFile(os.Args[1], os.O_APPEND|os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
 	if err != nil {
 		panic(err)
 	}
-	f.Truncate(0)
 	defer f.Close()
 
 	out := io.MultiWriter(os.Stdout, f)
