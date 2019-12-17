@@ -52,10 +52,20 @@ class Server:
 
         signal.signal(signal.SIGTERM, self.stop)
         signal.signal(signal.SIGINT, self.stop)
+        # After created workers
+        # Main process should only monitor and recreate worker if needed
         while True > 0:
-            pid, status = os.wait()
+            try:
+                pid, status = os.wait()
+            except OSError as e:
+                # Handle no child process error
+                # Exit the program after all worker had stopped
+                if e.errno == 10:
+                    sys.exit(0)
             print("A child exited")
             self.children.remove(pid)
+            # Recreate another worker
+            # when there is an unexpected worker killed
             if self.running:
                 self.fork_worker()
 
@@ -65,8 +75,19 @@ class Server:
         for child in self.children:
             os.kill(child, signal.SIGTERM)
         self.running = False
+
+        # Use OS Signal to avoid blocking main process
+        # which will cause all child worker to enter `defunct` mode after terminated
+        # because main process does not handle `os.wait`
         print("Wait for graceful timeout")
-        time.sleep(self.graceful_timeout)
+        signal.signal(signal.SIGALRM, self.exit)
+        signal.alarm(self.graceful_timeout)
+
+    def exit(self, sigNumber, frame):
+        # Terminate all running worker
+        # then exit
+        for child in self.children:
+            os.kill(child, signal.SIGKILL)
         sys.exit(0)
 
 if __name__ == "__main__":
