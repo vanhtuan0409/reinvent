@@ -72,13 +72,14 @@ class Master:
     def stop(self, sigNumber, frame):
         print("Parent received signal")
         self.socket.close()
-        for child in self.children:
-            os.kill(child, signal.SIGTERM)
         self.running = False
 
         # Use OS Signal to avoid blocking main process
         # which will cause all child worker to enter `defunct` mode after terminated
         # because main process does not handle `os.wait`
+        # Dont need to send SIGTERM to children because
+        # Processes are in the same process group
+        # Signal will be passed through
         print("Wait for graceful timeout")
         signal.signal(signal.SIGALRM, self.exit)
         signal.alarm(self.graceful_timeout)
