@@ -52,11 +52,11 @@ class Server:
 
         signal.signal(signal.SIGTERM, self.stop)
         signal.signal(signal.SIGINT, self.stop)
-        while len(self.children) > 0:
+        while True > 0:
             pid, status = os.wait()
             print("A child exited")
+            self.children.remove(pid)
             if self.running:
-                self.children.remove(pid)
                 self.fork_worker()
 
     def stop(self, sigNumber, frame):
