@@ -24,7 +24,7 @@ class Worker:
         print("Shutting down worker {}".format(self.pid))
         sys.exit(0)
 
-class Server:
+class Master:
     def __init__(self, addr, port, workers=5, graceful_timeout=30):
         self.addr = addr
         self.port = port
@@ -91,5 +91,5 @@ class Server:
         sys.exit(0)
 
 if __name__ == "__main__":
-    s = Server("0.0.0.0", 8888, graceful_timeout=10)
-    s.start()
+    m = Master("0.0.0.0", 8888, graceful_timeout=10)
+    m.start()
